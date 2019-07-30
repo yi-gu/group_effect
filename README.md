@@ -1,11 +1,11 @@
-# Group Effects Explainer
+# GroupEffect Explainer
 
 ## Introduction
 Animation sequencing is a common technique that allows creation of complex animated effects where multiple effects (potentially on multiple targets) are animated together as a group.
 
 There is currently a draft proposal to include some form of sequencing in [Web Animations Level 2 Specification](https://drafts.csswg.org/web-animations-2/#group-effect). The proposal introduces a `GroupEffect` which is a type of `AnimationEffect` that contains an ordered sequence of other animation effects a.k.a children effects.
 
-In the explainer we are proposing a few changes to this model with the objective to introduce flexibility and customizability. Furthermore we propose adding a new sequencing model “stagger”.  The altered design introduces a different hierarchy of group effects: An abstract group effect representing the grouping, and concrete sub-types that define different possible mapping of time from the parent to children.
+In the explainer we are proposing a few changes to this model with the objective to introduce flexibility and customizability. Furthermore we propose adding a new sequencing model “stagger”.  The altered design introduces a different hierarchy of group effect: An abstract group effect representing the grouping, and concrete sub-types that define different possible mapping of time from the parent to children.
 
 ## Motivations
 Grouping is a powerful mechanism that allows creation of complex tree structures by hiding the complexity inside the group. Note that for this to work well the group should hide its inner working and expose a common API. This is a valuable primitive that allows scaling animations to complex sequences and it is a common technique supported by popular animation [libraries and tools](#Appendix).
@@ -19,12 +19,12 @@ This can work but suboptimal for the following reasons.
     * The dependency between effects (e.g., B starts after A or in the middle of it) has to be manually maintained. For example changing the duration of A needs to change the start time of B which needs recalculation and it can be extremely complex in certain cases. It is is easier for browser to maintain and auto update them.
   * No common playback controls for group i.e., each animation must be played/cancelled individually which means more tracking on the web developers part.
   * It is not easy to synchronize the starting of the animation since play is asynchronous.
-  * With group effects one can create complex iterated animations  (using features such as “playback-direction: alternative” etc.) that involve multiple elements. These are difficult to do correctly without `GroupEffect`.
+  * With group effect one can create complex iterated animations  (using features such as “playback-direction: alternative” etc.) that involve multiple elements. These are difficult to do correctly without `GroupEffect`.
 * Efficiency: Maintaining a list of animations is costly. Further, with GroupEffect browsers can take a whole tree of effects and turn it into a more closed form that is efficient.
 
 #### Example
 Consider this sequence where two elements are animated and then reversed.
-![Figure 1](./example.png)
+![Figure 1](./resources/example.png)
 A possible implementation without grouping can be done this way:
 
 ```
@@ -79,7 +79,7 @@ Also, the existing spec only speculates two different scheduling models (i.e. pa
 
 ## Proposed Design
 
-![Figure 2](./hierarchy.png)
+![Figure 2](./resources/hierarchy.png)
 `GroupEffect`: an abstract class that contains an ordered list of “child effects” but not time mapping from parent to children and not intrinsic iteration duration. There are some concrete subclasses which have a specific time mapping model. These models determine
  1. the intrinsic iteration duration of the group
  1. how group inherited time maps to a child inherited time.
@@ -99,7 +99,7 @@ Notes:
 * Since a child time is determined by its parent. It is not allowed to set the localTime of a child directly.
 * This model is more expandable and more interesting grouping mechanisms can be introduced in the future. e.g. this is usable in `AnimationWorklet` to allow creation of interesting new Groupings.
 * Does not allow cycles, i.e., a group effect cannot be its own descendent.
-![Figure 3](./tree.png)
+![Figure 3](./resources/tree.png)
 * The children are contained inside the parent.
 * Since individual animation effects have mutable timings (AnimationEffect.duration) then the group effect timings are mutable as well.
 
@@ -114,9 +114,92 @@ Notes:
 
 ## Examples
 
-An example of using GroupEffect to animate two correlated effects with AnimationWorklet.
+Note that the proposed `GroupEffect` is for Web Animation. The following
+examples are implemented using AnimationWorklet just to showcase how
+`GroupEffect` should be used.
 
-![Figure 4](./group_effects.gif)
+### An example of using GroupEffect to animate stagger effects with AnimationWorklet.
+![Figure 4](./resources/stagger_effect.gif)
+```
+// Inside AnimationWorkletGlobalScope.
+<script id="passthrough"  type="text/worklet">
+registerAnimator("test_animator", class {
+  animate(currentTime, effect) {
+    let effects = effect.getChildren();
+    for (var i = 0; i < effects.length; ++i)
+      effects[i].localTime = currentTime;
+  }
+});
+</script>
+
+// In document scope.
+// For simplicity, all the single keyframe effects are the same.
+function SingleEffect(target) {
+  return new KeyframeEffect(target,
+      [
+         { transform: 'scale(1.3) translateX(-400px) translateY(300px) rotate(360deg)',
+           opacity: 1 }
+      ], {
+        duration: 500,
+        fill: 'forwards'
+      }
+  );
+}
+
+function AnotherEffect(target) {
+  return new KeyframeEffect(target,
+      [
+         { transform: 'scale(1) translateX(-400px) translateY(-300px) rotate(0deg)',
+           opacity: 0 }
+      ], {
+        duration: 500,
+        delay: 500,
+        fill: 'forwards'
+      }
+  );
+}
+
+// Converts the input text to multiple effects. Each effect is defined by the
+// same KeyframeEffect function.
+function Effects(text) {
+  var effects = [];
+  var wrapper = document.getElementById('wrapper');
+  text.split('').forEach(function(c) {
+    var div = document.createElement('div');
+    div.textContent = c;
+    div.setAttribute('class', 'box');
+    wrapper.appendChild(div);
+    effects.push(SingleEffect(div));
+  });
+
+  var children = wrapper.children;
+  for (var i = 0; i< children.length; ++i) {
+    effects.push(AnotherEffect(children[i]));
+  }
+  return effects;
+}
+
+function runInAnimationWorklet(code) {
+  return CSS.animationWorklet.addModule(
+    URL.createObjectURL(new Blob([code], {type: 'text/javascript'}))
+  );
+}
+
+runInAnimationWorklet(
+  document.getElementById('passthrough').textContent
+).then(()=>{
+
+  // The API is non-normative.
+  var stagger_effect = new StaggerEffect(Effects('stagger effect'), {delay: 1000}, 0.2);
+  var animation = new WorkletAnimation('test_animator', stagger_effect);
+
+  animation.play();
+});
+```
+
+### An example of using GroupEffect to animate two correlated effects with AnimationWorklet.
+
+![Figure 5](./resources/correlated_effects.gif)
 ```
 // Inside AnimationWorkletGlobalScope.
 registerAnimator("test_animator", class {
@@ -163,7 +246,6 @@ var exclusive_effect = new ParallelEffect([effect_a, effect_b], {fill: 'forwards
 let animation = new WorkletAnimation('test_animator', exclusive_effect);
 animation.play();
 ```
-
 ## Appendix
 ### Relevant information and use cases
 * Multi-step animations: when there is a need for a series of animations occur one after another: https://css-tricks.com/using-multi-step-animations-transitions/
