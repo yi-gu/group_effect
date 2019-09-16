@@ -256,4 +256,7 @@ animation.play();
   * You can do this with multiple animations with different delays or if you have a sequence group. But maybe we can have a StaggerGroup.
   * See this GSOCK example: https://greensock.com/docs/TimelineMax/staggerFrom()
   * Angular also supports (group, sequence, stagger): https://angular.io/guide/complex-animation-sequences
+  * React animated framework has (parallel, sequence, stagger): https://facebook.github.io/react-native/docs/animated#composing-animations
+  * AnimateJs: https://animejs.com/documentation/#staggeringBasic
 * SMIL has: par/seq/excl groupings for animations: https://www.w3.org/TR/REC-smil/smil-timing.html#Timing-ParSyntax
+
