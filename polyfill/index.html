@@ -31,20 +31,20 @@
 
 <script src="group-effect.js"></script>
 <script>
-function createSingleEffect(target) {
+function createSingleEffect(target, duration) {
   var keyframes = [
     {transform: 'scale(1) translateY(0)'},
-    {transform: 'scale(0.1) translateY(50px)'},
+    {transform: 'scale(0.2) translateY(50px)'},
     {transform: 'scale(1) translateY(0)'}
   ];
   var effect = new KeyframeEffect(
       target,
       keyframes,
-      { duration: 300 });
+      { duration: duration });
   return effect;
 }
 
-function createEffects(type, num) {
+function createEffects(type, duration) {
   var wrapper = document.getElementById('wrapper');
   var div = document.createElement('div');
   div.id = type;
@@ -58,7 +58,7 @@ function createEffects(type, num) {
     div.textContent = c;
     div.setAttribute('class', 'char');
     effects_holder.appendChild(div);
-    effects.push(createSingleEffect(div));
+    effects.push(createSingleEffect(div, duration));
   });
   return effects;
 }
@@ -78,28 +78,33 @@ function createFancyEffects(type, row, col) {
         var cell = document.createElement("div"); 
         cell.className = "box"; 
         new_line.appendChild(cell); 
-        effects.push(createSingleEffect(cell));
+        effects.push(createSingleEffect(cell, 500));
     } 
     effects_holder.appendChild(new_line); 
   } 
   return effects;
 }
 
-var num_target = 6;
-var parallel_effect = new ParallelEffect(createEffects('parallel', num_target));
-var sequence_effect = new SequenceEffect(createEffects('sequence', num_target));
-
-var stagger_options = {
-  delay: 100,          // time gap between two KeyframeEffects
-  emanation: 0,        // index of emanative KeyframeEffect
-  easing: 'ease-in-out',  // function that distributes the start time of each KeyframeEffect
-};
-var stagger_effect = new StaggerEffect(createEffects('stagger', num_target), stagger_options);
-
-var animation = new Animation([parallel_effect, sequence_effect, stagger_effect]);
+var parallel_effect = new ParallelEffect(createEffects('parallel', /* duration*/ 1000));
+// The parameter is a list of KeyframeEffect.
+var animation = new Animation(parallel_effect);
 
 setInterval(function() {
   animation.play();
+}, 2000);
+
+var sequence_effect = new SequenceEffect(createEffects('sequence', 200));
+var stagger_options = {
+  delay: 100,          // time gap between two KeyframeEffects
+  emanation: 0,        // index of emanative KeyframeEffect
+  easing: 'linear',    // function that distributes the start time of each KeyframeEffect
+};
+var stagger_effect = new StaggerEffect(createEffects('stagger', 1000), stagger_options);
+// The parameter is a list of GroupEffect.
+var animation_with_list_of_group_effect = new Animation([sequence_effect, stagger_effect]);
+
+setInterval(function() {
+  animation_with_list_of_group_effect.play();
 }, 3000);
 
 var row = 9, col = 17;
@@ -110,8 +115,8 @@ var fancy_stagger_options =  {
   grid: [row, col]
 };
 var fancy_stagger_effect = new StaggerEffect(createFancyEffects('fancy_stagger', row, col), fancy_stagger_options);
-
 var fancy_animation = new Animation(fancy_stagger_effect);
+
 setInterval(function() {
   fancy_animation.play();
 }, 2000);
