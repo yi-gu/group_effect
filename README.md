@@ -191,8 +191,7 @@ runInAnimationWorklet(
   var stagger_options = {
     delay: 0.2,        // time gap between two KeyframeEffects
     emanation: 0 x,    // index of emanative KeyframeEffect and axis
-    timing: 'linear',  // function that distributes the start time of each
-KeyframeEffect
+    timing: 'linear',  // function that distributes the start time of each KeyframeEffect
   };
     
   var stagger_effect =
