@@ -74,7 +74,9 @@ In the current design the base class (`GroupEffect`) comes with a default time m
 
 We propose to separate the concepts of “group of effects” from “time mapping” thus making it more natural to later add grouping with custom time mappings. In this design the base class, `GroupEffect`, has no time mapping and cannot be directly constructed. Instead, concrete subclasses (`SequenceEffect`, `ParallelEffect`, `StaggerEffect`) have time mappings. In particular, in future [AnimationWorklet](https://drafts.css-houdini.org/css-animationworklet/) can be used to allow a special WorkletGroupEffect whose time can be mapped to its children in any fashion.
 
-Also, the existing spec only speculates two different scheduling models (i.e. parallel, sequence) and we believe stagger is a nice addition . See [example](#Appendix) of stagger in popular frameworks.
+Also, the existing spec only speculates two different scheduling models (i.e.
+parallel, sequence) and we believe stagger is a nice addition. With [polyfill](https://github.com/yi-gu/group_effect/tree/master/polyfill), a nice animation is created using StaggerEffect. See more [examples](#Appendix) of stagger in popular frameworks.
+<center><img src="./resources/stagger_effect2.gif"></center>
 
 ## Proposed Design
 
@@ -91,8 +93,8 @@ Note that the basic supported types map have a simple time shift model which add
   * Mapping: each child starts after another (note that ordering is important)
   * Intrinsic duration: Sum duration of children
 * StaggerEffect:
-  * Mapping: each child starts after a constant time depending on its rank
-  * Intrinsic duration: Max (stagger_delay * i + duration of child(i))
+  * Mapping: each child starts after a time delay depending on the stagger config
+  * Intrinsic duration: Max(f(stagger_delay) + duration of child(i))
 
 Notes:
 * Since a child time is determined by its parent. It is not allowed to set the localTime of a child directly.
@@ -190,7 +192,7 @@ runInAnimationWorklet(
 
   var stagger_options = {
     delay: 0.2,        // time gap between two KeyframeEffects
-    emanation: 0 x,    // index of emanative KeyframeEffect and axis
+    emanation: 0,      // index of emanative KeyframeEffect
     timing: 'linear',  // function that distributes the start time of each KeyframeEffect
   };
     

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<style>
+.box {
+  display: inline-block;
+  margin: 5px;
+  width: 20px;
+  height: 20px;
+  background: green;
+}
+
+#wrapper {
+  position: absolute;
+  font-size: 35px;
+}
+
+#fancy {
+  position: absolute;
+  top: 400px;
+  border: 2px green solid;
+}
+</style>
+
+<div id='wrapper'></div>
+<div id='fancy'></div>
+
+<script src="group-effect.js"></script>
+<script>
+function createSingleEffect(target) {
+  var keyframes = [
+    {transform: 'scale(1) translateY(0)'},
+    {transform: 'scale(0.1) translateY(50px)'},
+    {transform: 'scale(1) translateY(0)'}
+  ];
+  var effect = new KeyframeEffect(
+      target,
+      keyframes,
+      { duration: 400 });
+  return effect;
+}
+
+function createEffects(type, num) {
+  var wrapper = document.getElementById('wrapper');
+  var div = document.createElement('div');
+  div.textContent = type;
+  wrapper.appendChild(div);
+
+  div = document.createElement('div');
+  div.id = type;
+  wrapper.appendChild(div);
+
+  var effects = [];
+  var effects_holder = document.getElementById(type);
+  while(--num >= 0) {
+    var div = document.createElement('div');
+    div.setAttribute('class', 'box');
+    effects_holder.appendChild(div);
+
+    effects.push(createSingleEffect(div));
+  }
+  return effects;
+}
+
+function createFancyEffects(type, row, col) {
+  var wrapper = document.getElementById('fancy');
+  var div = document.createElement('div');
+  div.id = type;
+  wrapper.appendChild(div);
+
+  var effects = [];
+  var effects_holder = document.getElementById(type);
+
+  for(var i = 0; i < row; ++i){ 
+    var new_line = document.createElement("div"); 
+    for(var j = 0; j < col; ++j){ 
+        var cell = document.createElement("div"); 
+        cell.className = "box"; 
+        new_line.appendChild(cell); 
+        effects.push(createSingleEffect(cell));
+    } 
+    effects_holder.appendChild(new_line); 
+  } 
+  return effects;
+}
+
+var num_target = 6;
+var parallel_effect = new ParallelEffect(createEffects('parallel', num_target));
+var sequence_effect = new SequenceEffect(createEffects('sequence', num_target));
+
+var stagger_options = {
+  delay: 100,          // time gap between two KeyframeEffects
+  emanation: 0,        // index of emanative KeyframeEffect
+  easing: 'ease-in-out',  // function that distributes the start time of each KeyframeEffect
+};
+var stagger_effect = new StaggerEffect(createEffects('stagger', num_target), stagger_options);
+
+var animation = new Animation([parallel_effect, sequence_effect, stagger_effect]);
+animation.play();
+
+var row = 9, col = 17;
+var fancy_stagger_options =  {
+  delay: 100,
+  emanation: Math.floor(row * col / 2),
+  easing: 'ease-in-out',
+  grid: [row, col]
+};
+var fancy_stagger_effect = new StaggerEffect(createFancyEffects('fancy_stagger', row, col), fancy_stagger_options);
+
+var fancy_animation = new Animation(fancy_stagger_effect);
+setInterval(function() {
+  fancy_animation.play();
+}, 2000);
+
+</script>
