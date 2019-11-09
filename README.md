@@ -60,7 +60,6 @@ var effect_a = new KeyframeEffect(
 var effect_b = new KeyframeEffect(
     target_b, { opacity: [0, 1] }, {duration: 200});
 
-// The API is non-normative.
 var parallel_effect = new ParallelEffect([effect_a, effect_b],
     {iterations: 2, direction: 'alternate'});
 
@@ -189,8 +188,17 @@ runInAnimationWorklet(
   document.getElementById('passthrough').textContent
 ).then(()=>{
 
-  // The API is non-normative.
-  var stagger_effect = new StaggerEffect(Effects('stagger effect'), {delay: 1000}, 0.2);
+  var stagger_options = {
+    delay: 0.2,        // time gap between two KeyframeEffects
+    emanation: 0 x,    // index of emanative KeyframeEffect and axis
+    timing: 'linear',  // function that distributes the start time of each
+KeyframeEffect
+  };
+    
+  var stagger_effect =
+      new StaggerEffect(Effects('stagger effect'),
+          {delay: 1000},
+          stagger_options);
   var animation = new WorkletAnimation('test_animator', stagger_effect);
 
   animation.play();
@@ -240,7 +248,6 @@ let effect_b = new KeyframeEffect(
     { duration: 2000 }
 );
 
-// The API is non-normative.
 var exclusive_effect = new ParallelEffect([effect_a, effect_b], {fill: 'forwards'});
 
 let animation = new WorkletAnimation('test_animator', exclusive_effect);
