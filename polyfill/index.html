@@ -6,12 +6,13 @@
   margin: 15px;
 }
 
-.box {
+.circle {
   display: inline-block;
   margin: 5px;
   width: 20px;
   height: 20px;
   background: green;
+  border-radius: 50%;
 }
 
 #wrapper {
@@ -22,7 +23,6 @@
 #fancy {
   position: absolute;
   top: 400px;
-  border: 2px green solid;
 }
 </style>
 
@@ -76,7 +76,7 @@ function createFancyEffects(type, row, col) {
     var new_line = document.createElement("div"); 
     for(var j = 0; j < col; ++j){ 
         var cell = document.createElement("div"); 
-        cell.className = "box"; 
+        cell.className = "circle";
         new_line.appendChild(cell); 
         effects.push(createSingleEffect(cell, 500));
     } 
@@ -111,7 +111,7 @@ var row = 9, col = 17;
 var fancy_stagger_options =  {
   delay: 100,
   emanation: Math.floor(row * col / 2),
-  easing: 'ease-in-out',
+  easing: 'cubic-bezier(0.1, -0.2, 0.2, 0)',
   grid: [row, col]
 };
 var fancy_stagger_effect = new StaggerEffect(createFancyEffects('fancy_stagger', row, col), fancy_stagger_options);
