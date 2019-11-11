@@ -75,7 +75,7 @@ In the current design the base class (`GroupEffect`) comes with a default time m
 We propose to separate the concepts of “group of effects” from “time mapping” thus making it more natural to later add grouping with custom time mappings. In this design the base class, `GroupEffect`, has no time mapping and cannot be directly constructed. Instead, concrete subclasses (`SequenceEffect`, `ParallelEffect`, `StaggerEffect`) have time mappings. In particular, in future [AnimationWorklet](https://drafts.css-houdini.org/css-animationworklet/) can be used to allow a special WorkletGroupEffect whose time can be mapped to its children in any fashion.
 
 Also, the existing spec only speculates two different scheduling models (i.e.
-parallel, sequence) and we believe stagger is a nice addition. With [polyfill](https://github.com/yi-gu/group_effect/tree/master/polyfill), a nice animation is created using StaggerEffect. See more [examples](#Appendix) of stagger in popular frameworks.
+parallel, sequence) and we believe stagger is a nice addition. With [polyfill](https://yi-gu.github.io/group_effect/polyfill/), a nice animation is created using StaggerEffect. See more [examples](#Appendix) of stagger in popular frameworks.
 <center><img src="./resources/stagger_effect2.gif"></center>
 
 ## Proposed Design
